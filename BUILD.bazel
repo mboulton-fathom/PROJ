@@ -1,0 +1,56 @@
+package(default_visibility = ["//:__subpackages__"])
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template_rule")
+
+expand_template_rule(
+    # A unique name for this target.
+    name = "proj_config_generate",
+    # The template file to expand.
+    out = "proj_config.h",
+    substitutions = {
+        "#cmakedefine VERSION \"${VERSION}\"": "",
+        "cmakedefine": "define",
+        "${PACKAGE}": "proj",
+        "${PACKAGE_BUGREPORT}": "",
+        "${PACKAGE_NAME}": "proj",
+        "${PACKAGE_TARNAME}": "proj",
+        "${PACKAGE_VERSION}": "0.0.1",
+        # "${VERSION}": "9.3.1",
+        "${PACKAGE_STRING}": "proj-9.3.1",
+    },
+    template = "cmake/proj_config.cmake.in",
+)
+
+cc_library(
+    name = "proj",
+    srcs = glob(
+        [
+            "src/**/*.cpp",
+            "src/**/*.c",
+        ],
+        allow_empty = False,
+        exclude = [
+            "src/tests/*",
+            "src/apps/*",
+        ],
+    ),
+    hdrs = glob(
+        [
+            "src/**/*.h",
+            "src/**/*.hpp",
+            "include/**/*.hpp",
+        ],
+        allow_empty = False,
+    ) + [":proj_config_generate"],
+    copts = [
+        "-I.",
+        "-I$(GENDIR)",
+    ],
+    includes = [
+        "include",
+        "src",
+    ],
+    visibility = ["//visibility:public"],
+    deps = ["@sqlite3"],
+)
