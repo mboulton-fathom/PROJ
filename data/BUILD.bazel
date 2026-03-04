@@ -59,7 +59,7 @@ $(location @sqlite3//:shell) $(location proj.db) < all.sql
     tools = ["@sqlite3//:shell"],
 )
 
-tar(
+filegroup(
     name = "data",
     srcs = [
         "CH",
