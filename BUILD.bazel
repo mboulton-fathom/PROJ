@@ -3,9 +3,14 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
-_SUBSTITIONS = {
-    # This cmakedefine causes issues with names clashing.
-    "#cmakedefine VERSION \"${VERSION}\"": "",
+genrule(
+    name = "proj_config_strip_version",
+    srcs = ["cmake/proj_config.cmake.in"],
+    outs = ["proj_config_stripped.cmake.in"],
+    cmd = "sed '/cmakedefine VERSION/d' $< > $@",
+)
+
+_SUBSTITUTIONS = {
     "cmakedefine": "define",
     "${PACKAGE}": "proj",
     "${PACKAGE_BUGREPORT}": "",
@@ -17,13 +22,11 @@ _SUBSTITIONS = {
 }
 
 expand_template_rule(
-    # A unique name for this target.
     name = "proj_config_generate",
-    # The template file to expand.
     out = "proj_config.h",
-    stamp_substitutions = _SUBSTITIONS,
-    substitutions = _SUBSTITIONS,
-    template = "cmake/proj_config.cmake.in",
+    stamp_substitutions = _SUBSTITUTIONS,
+    substitutions = _SUBSTITUTIONS,
+    template = ":proj_config_strip_version",
 )
 
 cc_library(
